@@ -745,7 +745,8 @@ class Session(Storage):
                 check_client=False,
                 cookie_key=None,
                 cookie_expires=None,
-                compression_level=None
+                compression_level=None,
+                cookie_domain=None
                 ):
         """
         Used in models, allows to customize Session handling
@@ -766,6 +767,7 @@ class Session(Storage):
             check_client: if True, sessions can only come from the same ip
             cookie_key(str): secret for cookie encryption
             cookie_expires: sets the expiration of the cookie
+            cookie_domain: sets the cookie domain attribute
             compression_level(int): 0-9, sets zlib compression on the data
                 before the encryption
         """
@@ -782,6 +784,7 @@ class Session(Storage):
         response.session_cookie_expires = cookie_expires
         response.session_client = str(request.client).replace(':', '.')
         response.session_cookie_key = cookie_key
+        response.session_cookie_domain = cookie_domain
         response.session_cookie_compression_level = compression_level
 
         # check if there is a session_id in cookies
@@ -1082,6 +1085,8 @@ class Session(Storage):
         rcookies.pop(name, None)
         rcookies[name] = value
         rcookies[name]['path'] = '/'
+        if response.session_cookie_domain:
+            rcookies[name]['domain'] = response.session_cookie_domain
         expires = response.session_cookie_expires
         if isinstance(expires, datetime.datetime):
             expires = expires.strftime(FMT)
